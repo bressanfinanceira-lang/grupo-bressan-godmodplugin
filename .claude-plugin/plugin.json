@@ -1,0 +1,12 @@
+{
+  "name": "grupo-bressan-godmodplugin",
+  "version": "8.2.0",
+  "description": "War Room isometrica em pixel art conectada ao MetaTrader 5: VWAP, RSI, Monte Carlo, simulacao do pregao e auto-trade com SL/TP, mais skills, agentes e comandos de pesquisa quantitativa.",
+  "author": { "name": "Grupo Bressan" },
+  "license": "MIT",
+  "icon": ".claude-plugin/icon.png",
+  "keywords": ["quant", "metatrader5", "b3", "trading", "monte-carlo", "pixel-art"],
+  "network": {
+    "hosts": ["localhost", "fonts.googleapis.com", "fonts.gstatic.com"]
+  }
+}

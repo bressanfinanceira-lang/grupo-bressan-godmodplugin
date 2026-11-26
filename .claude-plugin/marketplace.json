@@ -1,0 +1,13 @@
+{
+  "name": "grupo-bressan",
+  "owner": { "name": "Grupo Bressan" },
+  "description": "Plugins do Grupo Bressan para engenharia quantitativa e MetaTrader 5.",
+  "plugins": [
+    {
+      "name": "grupo-bressan-godmodplugin",
+      "source": "./",
+      "description": "War Room isometrica em pixel art conectada ao MetaTrader 5 com skills, agentes e comandos quant.",
+      "version": "8.2.0"
+    }
+  ]
+}

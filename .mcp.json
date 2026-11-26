@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "grupo-bressan-quant": {
+      "command": "py",
+      "args": ["-3.12", "${CLAUDE_PLUGIN_ROOT:-.}/mcp/quant_mcp_server.py"]
+    }
+  }
+}

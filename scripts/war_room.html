@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grupo Bressan · War Room MT5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b12;--panel:#0f1624;--panel2:#131c2d;--line:#24304a;--txt:#e6ebf3;--mut:#8a96ab;
+  --green:#22c55e;--red:#ef4444;--gold:#fbbf24;--blue:#60a5fa;--violet:#a78bfa;--amber:#f59e0b;
+  --pix:"VT323",ui-monospace,"Cascadia Mono",Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font-family:var(--pix);font-size:18px;line-height:1.15}
+.wrap{max-width:1240px;margin:0 auto;padding:10px 16px 24px}
+#ticker{overflow:hidden;white-space:nowrap;background:#0c1220;border:2px solid var(--line);border-radius:6px;color:var(--gold);font-size:20px;padding:4px 0}
+#ticker span{display:inline-block;padding-left:100%;animation:tick 28s linear infinite}
+@keyframes tick{to{transform:translateX(-100%)}}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:8px 0}
+h1{margin:0;font-size:28px;letter-spacing:1px;color:#fff}
+h1 b{color:var(--gold)}
+.badges{display:flex;gap:6px;flex-wrap:wrap}
+.badge{border:2px solid var(--line);padding:1px 8px;border-radius:4px;font-size:17px;background:var(--panel)}
+.badge.real{border-color:var(--red);color:#fff;background:#3b0d12;animation:pulse 1.4s infinite}
+.badge.demo{border-color:var(--blue);color:var(--blue)}
+.badge.ok{border-color:var(--green);color:var(--green)}
+.badge.bad{border-color:var(--red);color:var(--red)}
+@keyframes pulse{50%{box-shadow:0 0 10px #ef444488}}
+#alerts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.alert{border:2px solid;border-radius:6px;padding:2px 8px;font-size:16px;flex:1 1 320px}
+.alert.err{border-color:var(--red);background:#2a0b10;color:#fecaca}
+.alert.warn{border-color:var(--amber);background:#2a1d06;color:#fde68a}
+#stage{position:relative;width:100%;aspect-ratio:480/320;border:3px solid var(--line);border-radius:8px;overflow:hidden;background:#0b1220}
+#room{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+.ov{position:absolute;transform:translate(-50%,-100%);pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:3px;will-change:left,top}
+.ov{gap:0}
+.stem{width:2px;background:repeating-linear-gradient(#f8fafccc 0 3px,transparent 3px 6px);margin-top:6px}
+.float{animation:bob 2.4s ease-in-out infinite;display:flex;flex-direction:column;align-items:center;gap:3px}
+@keyframes bob{50%{transform:translateY(-5px)}}
+.bubble{position:relative;background:#f8fafc;color:#0b1220;border:2px solid #0b1220;box-shadow:3px 3px 0 #0b122088;padding:3px 7px 4px;border-radius:3px;font-size:clamp(11px,1.45vw,17px);white-space:nowrap;text-align:center}
+.bubble:after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-5px;border:5px solid transparent;border-top-color:#0b1220}
+.bubble .nm{font-size:.85em;font-weight:bold;letter-spacing:.5px;padding:0 3px;border-radius:2px;color:#fff;display:inline-block;margin-bottom:1px}
+.bubble .l{display:block}
+.bubble.pop{animation:pop .45s}
+@keyframes pop{30%{transform:scale(1.12)}}
+.sig-COMPRA{color:#15803d;font-weight:bold}.sig-VENDA{color:#b91c1c;font-weight:bold}.sig-AGUARDAR{color:#475569}
+.score{background:#0b1220;border:2px solid var(--gold);color:#fff;padding:2px 8px;border-radius:4px;font-size:clamp(12px,1.6vw,19px);white-space:nowrap;box-shadow:0 0 10px #fbbf2455;text-align:center}
+.score .w{color:var(--green)}.score .lo{color:var(--red)}
+.tvl{position:absolute;transform:translate(-50%,0) skewY(-26.565deg);transform-origin:50% 0;pointer-events:none;
+  color:#f8fafc;font-size:clamp(11px,1.55vw,21px);line-height:1.02;text-align:center;letter-spacing:.5px;
+  background:rgba(2,6,14,.88);border:1px solid #1e3a5f;border-radius:2px;padding:.1em .2em .15em;text-shadow:0 0 3px #000}
+.tvl b{color:#fbbf24}.tvl .m{color:#94a3b8}.tvl .g{color:#4ade80;font-weight:bold}.tvl .r{color:#f87171;font-weight:bold}
+.tvl .live{color:#f87171;font-size:.85em}
+#btnSim{background:#1e3a8a;border-color:#93c5fd;color:#dbeafe}
+#btnSim:disabled{opacity:.6;cursor:wait}
+#simCard{grid-column:1/-1}
+.simsum{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.simsum div{background:var(--panel2);border:2px solid var(--line);border-radius:6px;padding:3px 10px;font-size:18px}
+.simsum b{font-size:24px;display:block}
+#eq{width:100%;height:150px;background:#03060c;border:2px solid var(--line);border-radius:6px}
+.tblwrap{overflow-x:auto;margin-top:8px;max-height:260px;overflow-y:auto}
+table{border-collapse:collapse;width:100%;font-size:17px;white-space:nowrap}
+th,td{padding:2px 8px;border-bottom:1px solid var(--line);text-align:right}
+th{color:var(--mut);font-weight:normal;position:sticky;top:0;background:var(--panel)}
+td:nth-child(2),td:nth-child(7),th:nth-child(2),th:nth-child(7){text-align:left}
+tr.pend{opacity:.25}tr.cur{background:#1e293b}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.fx{position:absolute;transform:translate(-50%,-100%);font-size:clamp(14px,2.2vw,26px);font-weight:bold;pointer-events:none;animation:rise 2s forwards;text-shadow:2px 2px 0 #000}
+@keyframes rise{to{transform:translate(-50%,-260%);opacity:0}}
+.hud{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:10px}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:8px;padding:8px 10px}
+.card h3{margin:0 0 6px;font-size:18px;color:var(--mut);letter-spacing:1px;font-weight:normal;text-transform:uppercase}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:1px 10px;font-size:18px}
+.kv span:nth-child(odd){color:var(--mut)}
+.kv span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums}
+.bar{height:12px;background:#1c2638;border-radius:2px;overflow:hidden;margin:2px 0 6px}
+.bar i{display:block;height:100%}
+.btns{display:flex;flex-direction:column;gap:8px}
+button{font-family:var(--pix);font-size:22px;letter-spacing:1px;border:3px solid #0b1220;border-radius:6px;padding:10px 12px;cursor:pointer;color:#fff;box-shadow:0 4px 0 #0008}
+button:active{transform:translateY(2px);box-shadow:0 2px 0 #0008}
+#btnAuto{background:#14532d;border-color:var(--green);color:#bbf7d0}
+#btnAuto.on{background:var(--green);color:#052e16;border-color:#bbf7d0;box-shadow:0 0 18px #22c55eaa,0 4px 0 #0008}
+#btnPanic{background:#991b1b;border-color:#fca5a5}
+#log{grid-column:1/-1;max-height:180px;overflow-y:auto;font-size:17px;color:#86efac;background:#03060c}
+#log div{white-space:pre-wrap}
+.small{font-size:15px;color:var(--mut)}
+dialog{background:var(--panel2);color:var(--txt);border:3px solid var(--red);border-radius:10px;max-width:520px;font-family:var(--pix);font-size:19px}
+dialog::backdrop{background:#000a}
+dialog h2{margin:0 0 6px;color:#fca5a5}
+dialog label{display:flex;gap:8px;align-items:flex-start;margin:10px 0}
+dialog .row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+dialog button{font-size:19px;padding:6px 12px}
+#mOk{background:var(--red)}#mOk:disabled{opacity:.4;cursor:not-allowed}#mNo{background:#334155}
+@media (max-width:640px){h1{font-size:22px}.bubble .l2{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="ticker"><span id="tickTxt">GRUPO BRESSAN WAR ROOM · CONECTANDO AO METATRADER 5...</span></div>
+  <header>
+    <h1>GRUPO <b>BRESSAN</b> · WAR ROOM MT5</h1>
+    <div class="badges">
+      <span class="badge" id="bConn">SERVIDOR...</span>
+      <span class="badge" id="bMode">CONTA ?</span>
+      <span class="badge" id="bAlgo">ALGO ?</span>
+      <span class="badge" id="bTime">--:--:--</span>
+    </div>
+  </header>
+  <div id="alerts"></div>
+  <div id="stage"><canvas id="room" width="960" height="640"></canvas><div id="tvLabel" class="tvl"></div></div>
+
+  <div class="hud">
+    <div class="card"><h3>Conta MT5</h3><div class="kv" id="kvAcc"></div></div>
+    <div class="card"><h3>Mercado · pregão de hoje</h3><div class="kv" id="kvMkt"></div></div>
+    <div class="card"><h3>Monte Carlo (retornos reais)</h3><div id="mcBox" class="small">aguardando...</div></div>
+    <div class="card"><h3>Comando</h3>
+      <div class="btns">
+        <button id="btnAuto">AUTO-TRADE MT5: OFF</button>
+        <button id="btnPanic">PANIC STOP [ZERAR]</button>
+        <button id="btnSim">▶ SIMULAR O DIA DE HOJE</button>
+      </div>
+      <div class="kv" id="kvPos" style="margin-top:8px"></div>
+    </div>
+    <div class="card" id="simCard" hidden>
+      <h3 id="simTitle">Simulação do dia</h3>
+      <div class="simsum" id="simSum"></div>
+      <canvas id="eq" width="1200" height="300"></canvas>
+      <div class="small" id="simNote"></div>
+      <div class="tblwrap"><table id="simTbl"></table></div>
+    </div>
+    <div class="card" id="log"></div>
+  </div>
+</div>
+
+<dialog id="modal">
+  <h2>⚠ CONTA REAL DETECTADA</h2>
+  <div id="mInfo"></div>
+  <p>Com o AUTO-TRADE ligado, o robô envia ordens <b>reais</b> a mercado (mt5.order_send) com Stop Loss e Take Profit sempre que o sinal VWAP + RSI + Monte Carlo aparecer num candle fechado. O prejuízo é dinheiro de verdade.</p>
+  <label><input type="checkbox" id="mChk"> Entendo o risco e quero enviar ordens reais nesta conta.</label>
+  <div class="row"><button id="mNo">CANCELAR</button><button id="mOk" disabled>LIGAR AUTO-TRADE REAL</button></div>
+</dialog>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const cv = $('room'), ctx = cv.getContext('2d');
+const LW = 480, LH = 320;
+const W = 13, H = 11, WALL = 100, OX = 224, OY = 112;
+ctx.imageSmoothingEnabled = false;
+
+/* ---------------------------------------------------------------- iso helpers */
+function P(x, y, z = 0) { return [Math.round(OX + (x - y) * 16), Math.round(OY + (x + y) * 8 - z)]; }
+function poly(pts, fill, stroke) {
+  ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
+}
+function shade(hex, f) {
+  const n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  const m = v => Math.max(0, Math.min(255, Math.round(f > 1 ? v + (255 - v) * (f - 1) : v * f)));
+  return `rgb(${m(r)},${m(g)},${m(b)})`;
+}
+function box(x, y, z, w, d, h, col, alpha = 1) {
+  const a = P(x, y, z + h), b = P(x + w, y, z + h), c = P(x + w, y + d, z + h), e = P(x, y + d, z + h);
+  const c0 = P(x + w, y + d, z), e0 = P(x, y + d, z), b0 = P(x + w, y, z);
+  ctx.globalAlpha = alpha;
+  poly([e, c, c0, e0], shade(col, 0.8));
+  poly([c, b, b0, c0], shade(col, 0.6));
+  poly([a, b, c, e], shade(col, 1.15));
+  ctx.globalAlpha = 1;
+}
+/* local 2D drawing on vertical planes (u = 16px per tile, v = down) */
+const RS = 2; // resolução interna 2x (desenho em coordenadas lógicas 480x320)
+function faceY(x0, y, ztop) { const [X, Y] = P(x0, y, ztop); ctx.setTransform(RS, RS * 0.5, 0, RS, RS * X, RS * Y); }   // plane y=const, u along +x
+function faceX(x, y1, ztop) { const [X, Y] = P(x, y1, ztop); ctx.setTransform(RS, -RS * 0.5, 0, RS, RS * X, RS * Y); }  // plane x=const, u along -y
+function reset() { ctx.setTransform(RS, 0, 0, RS, 0, 0); }
+let seed = 1337; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const hash = (a, b) => { const s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); };
+
+/* ---------------------------------------------------------------- live state */
+let S = null, lastWins = null, lastLosses = null, lastSignal = null, lastLogLen = 0;
+let SIM = null, simShown = 0, simTimer = null;
+
+/* ---------------------------------------------------------------- city skyline (window) */
+const WIN_U = 131, WIN_V = 60;
+const FAR = [], NEAR = [], STARS = [];
+(() => {
+  let u = -6; while (u < WIN_U + 6) { const w = 7 + rnd() * 12, h = 22 + rnd() * 30; FAR.push({ u, w, h }); u += w + 0.5; }
+  u = -4; let tall = null;
+  while (u < WIN_U + 4) {
+    const w = 10 + rnd() * 15, h = 14 + rnd() * 30, wins = [];
+    for (let wy = 4; wy < h - 3; wy += 4) for (let wx = 2; wx < w - 2; wx += 3) wins.push({ wx, wy, p: rnd(), ph: rnd() * 50 });
+    const b = { u, w, h, wins, col: rnd() };
+    NEAR.push(b); if (!tall || h > tall.h) tall = b;
+    u += w + 2 + rnd() * 5;
+  }
+  tall.antenna = true;
+  for (let i = 0; i < 40; i++) STARS.push({ u: rnd() * WIN_U, v: rnd() * 30, p: rnd() * 6 });
+})();
+
+function skyMode() { const h = new Date().getHours(); return (h >= 19 || h < 6) ? 'night' : (h >= 17 || h < 7) ? 'dusk' : 'day'; }
+
+function drawWindow(t) {
+  const mode = skyMode();
+  faceY(2.4, 0, 90);
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 0, WIN_U, WIN_V); ctx.clip();
+  const g = ctx.createLinearGradient(0, 0, 0, WIN_V);
+  if (mode === 'day') { g.addColorStop(0, '#5aa9f0'); g.addColorStop(1, '#cfe8ff'); }
+  else if (mode === 'dusk') { g.addColorStop(0, '#3b2a6b'); g.addColorStop(.6, '#f2784b'); g.addColorStop(1, '#ffd29a'); }
+  else { g.addColorStop(0, '#050816'); g.addColorStop(1, '#1b2350'); }
+  ctx.fillStyle = g; ctx.fillRect(0, 0, WIN_U, WIN_V);
+  if (mode === 'night') {
+    STARS.forEach(s => { ctx.fillStyle = `rgba(255,255,255,${0.35 + 0.65 * Math.abs(Math.sin(t * 1.5 + s.p))})`; ctx.fillRect(s.u, s.v, 1, 1); });
+    ctx.fillStyle = '#f1f5f9'; ctx.beginPath(); ctx.arc(104, 11, 5, 0, 7); ctx.fill();
+    ctx.fillStyle = '#1b2350'; ctx.beginPath(); ctx.arc(106, 9.5, 4.3, 0, 7); ctx.fill();
+  } else {
+    ctx.fillStyle = mode === 'day' ? '#fff7c2' : '#ffb36b'; ctx.beginPath(); ctx.arc(mode === 'day' ? 108 : 20, mode === 'day' ? 10 : 30, 5, 0, 7); ctx.fill();
+    for (let i = 0; i < 4; i++) {
+      const cx = ((t * (2 + i) + i * 47) % (WIN_U + 40)) - 20, cy = 6 + i * 5;
+      ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fillRect(cx, cy, 14, 3); ctx.fillRect(cx + 3, cy - 2, 7, 2);
+    }
+  }
+  // plane
+  const px = ((t * 9) % (WIN_U + 60)) - 30;
+  ctx.fillStyle = mode === 'night' ? '#94a3b8' : '#e2e8f0'; ctx.fillRect(px, 16, 6, 1); ctx.fillRect(px + 2, 15, 2, 3);
+  if (Math.floor(t * 2) % 2) { ctx.fillStyle = '#f87171'; ctx.fillRect(px + 6, 16, 1, 1); }
+  // far skyline
+  ctx.fillStyle = mode === 'day' ? '#8ea6c8' : mode === 'dusk' ? '#5a3f6e' : '#141b36';
+  FAR.forEach(b => ctx.fillRect(b.u, WIN_V - b.h, b.w, b.h));
+  // near skyline with windows
+  NEAR.forEach(b => {
+    const base = mode === 'day' ? ['#4b6286', '#3f5476', '#566d93'] : mode === 'dusk' ? ['#33284a', '#2b2240', '#3b2d52'] : ['#0b1124', '#0e152c', '#0a0f20'];
+    ctx.fillStyle = base[Math.floor(b.col * 3)]; ctx.fillRect(b.u, WIN_V - b.h, b.w, b.h);
+    ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.fillRect(b.u, WIN_V - b.h, 1, b.h);
+    b.wins.forEach(w => {
+      const lit = mode === 'day' ? w.p > 0.35 : (w.p > 0.45) !== (Math.sin(t * 0.25 + w.ph) > 0.93);
+      ctx.fillStyle = lit ? (mode === 'day' ? '#b9d4f2' : '#fcd34d') : (mode === 'day' ? '#2f4060' : '#1a2238');
+      ctx.fillRect(b.u + w.wx, WIN_V - b.h + w.wy, 1.6, 2);
+    });
+    if (b.antenna) {
+      ctx.fillStyle = '#64748b'; ctx.fillRect(b.u + b.w / 2, WIN_V - b.h - 8, 1, 8);
+      if (Math.floor(t * 1.5) % 2) { ctx.fillStyle = '#ef4444'; ctx.fillRect(b.u + b.w / 2 - 0.5, WIN_V - b.h - 9, 2, 2); }
+    }
+  });
+  // glass reflections
+  ctx.fillStyle = 'rgba(255,255,255,.07)';
+  for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(10 + k * 33, WIN_V); ctx.lineTo(22 + k * 33, WIN_V); ctx.lineTo(36 + k * 33, 0); ctx.lineTo(24 + k * 33, 0); ctx.fill(); }
+  ctx.restore();
+  // frame + mullions
+  ctx.fillStyle = '#d6dde8';
+  ctx.fillRect(-2, -2, WIN_U + 4, 3); ctx.fillRect(-2, WIN_V - 1, WIN_U + 4, 3);
+  ctx.fillRect(-2, -2, 3, WIN_V + 4); ctx.fillRect(WIN_U - 1, -2, 3, WIN_V + 4);
+  for (let k = 1; k < 4; k++) ctx.fillRect(k * WIN_U / 4 - 1, 0, 2, WIN_V);
+  ctx.fillRect(0, 19, WIN_U, 1.5);
+  reset();
+  box(2.25, 0, 27, 8.5, 0.35, 3, '#cbd5e1');   // sill
+}
+
+/* ---------------------------------------------------------------- room shell */
+function drawShell(t) {
+  // floor checker
+  for (let i = 0; i < W; i++) for (let j = 0; j < H; j++)
+    poly([P(i, j), P(i + 1, j), P(i + 1, j + 1), P(i, j + 1)], (i + j) % 2 ? '#3a4860' : '#2c3850');
+  // rug under the desk cluster
+  poly([P(2.7, 2.4), P(10.9, 2.4), P(10.9, 9.5), P(2.7, 9.5)], '#1e3a5f');
+  poly([P(2.95, 2.65), P(10.65, 2.65), P(10.65, 9.25), P(2.95, 9.25)], null, '#3b82f6');
+  // walls
+  poly([P(0, 0, 0), P(0, H, 0), P(0, H, WALL), P(0, 0, WALL)], '#4f5d78');
+  poly([P(0, 0, 0), P(W, 0, 0), P(W, 0, WALL), P(0, 0, WALL)], '#5f6e8a');
+  // wainscot + baseboards
+  poly([P(0, 0, 0), P(0, H, 0), P(0, H, 30), P(0, 0, 30)], '#435069');
+  poly([P(0, 0, 0), P(W, 0, 0), P(W, 0, 30), P(0, 0, 30)], '#526079');
+  poly([P(0, 0, 0), P(0, H, 0), P(0, H, 4), P(0, 0, 4)], '#2a3346');
+  poly([P(0, 0, 0), P(W, 0, 0), P(W, 0, 4), P(0, 0, 4)], '#323c52');
+  poly([P(0, 0, 30), P(0, H, 30), P(0, H, 32), P(0, 0, 32)], '#6b7a96');
+  poly([P(0, 0, 30), P(W, 0, 30), P(W, 0, 32), P(0, 0, 32)], '#7b8aa6');
+  // wall caps + end faces
+  poly([P(0, 0, WALL), P(0, H, WALL), P(-0.35, H, WALL), P(-0.35, -0.35, WALL)], '#94a3b8');
+  poly([P(0, 0, WALL), P(W, 0, WALL), P(W, -0.35, WALL), P(-0.35, -0.35, WALL)], '#a3b1c6');
+  poly([P(-0.35, H, 0), P(0, H, 0), P(0, H, WALL), P(-0.35, H, WALL)], '#2b3448');
+  poly([P(W, 0, 0), P(W, -0.35, 0), P(W, -0.35, WALL), P(W, 0, WALL)], '#3a4560');
+  drawWindow(t);
+  // sunlight / moonlight patches on the floor
+  ctx.fillStyle = skyMode() === 'night' ? 'rgba(120,140,255,.06)' : 'rgba(255,236,180,.10)';
+  for (let k = 0; k < 4; k++) { const a = 2.5 + k * 2.05; poly([P(a, 0.05), P(a + 1.8, 0.05), P(a + 2.6, 2.6), P(a + 0.8, 2.6)], ctx.fillStyle); }
+  drawLogo(); drawTV(t); drawClock(); drawPoster();
+}
+
+function drawLogo() {
+  faceY(0.45, 0, 86);
+  ctx.fillStyle = '#0b1220'; ctx.fillRect(0, 0, 28, 30);
+  ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 1; ctx.strokeRect(1.5, 1.5, 25, 27);
+  ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center'; ctx.fillText('GB', 14, 17);
+  ctx.font = '5px monospace'; ctx.fillStyle = '#e2e8f0'; ctx.fillText('BRESSAN', 14, 25);
+  reset();
+}
+function drawPoster() { // right wall, right of the window
+  faceY(11.0, 0, 82);
+  ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, 20, 26);
+  ctx.fillStyle = '#0f172a'; ctx.font = 'bold 5px monospace'; ctx.textAlign = 'center';
+  ctx.fillText('RISCO', 10, 7); ctx.fillText('1%', 10, 14); ctx.fillStyle = '#16a34a'; ctx.fillText('SL+TP', 10, 22);
+  reset();
+}
+function drawClock() {
+  faceX(0, 10.3, 92);
+  const now = new Date(), cx = 13, cy = 10;
+  ctx.fillStyle = '#f8fafc'; ctx.beginPath(); ctx.arc(cx, cy, 7, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 1.2; ctx.stroke();
+  const hand = (a, l, w, c) => { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx + Math.sin(a) * l, cy - Math.cos(a) * l); ctx.stroke(); };
+  hand((now.getHours() % 12 + now.getMinutes() / 60) / 12 * 6.283, 3.5, 1.3, '#0f172a');
+  hand(now.getMinutes() / 60 * 6.283, 5.5, 1, '#0f172a');
+  hand(now.getSeconds() / 60 * 6.283, 6, 0.6, '#dc2626');
+  reset();
+}
+
+/* TV "telão" on the left wall with the real candles + VWAP */
+const TV = { y1: 7.9, y0: 3.2, ztop: 92, V: 62 };
+function drawTV(t) {
+  const { y1, y0 } = TV, U = (y1 - y0) * 16, V = TV.V;
+  faceX(0, y1, TV.ztop);
+  ctx.fillStyle = '#05070d'; ctx.fillRect(-2, -2, U + 4, V + 4);
+  ctx.fillStyle = '#071423'; ctx.fillRect(1, 1, U - 2, V - 2);
+  const c = S && S.candles, vw = S && S.vwaps;
+  if (c && c.length > 1) {
+    let mn = Infinity, mx = -Infinity;
+    c.forEach(k => { mn = Math.min(mn, k[2]); mx = Math.max(mx, k[1]); });
+    const vv = vw ? vw.slice(-c.length) : [];
+    vv.forEach(v => { mn = Math.min(mn, v); mx = Math.max(mx, v); });
+    if (mx === mn) mx = mn + 1;
+    const top = 25, hh = V - 29, n = c.length, bw = (U - 6) / n, Y = v => top + hh - (v - mn) / (mx - mn) * hh;
+    ctx.strokeStyle = 'rgba(96,165,250,.12)'; ctx.lineWidth = 0.5;
+    for (let g = 0; g < 4; g++) { ctx.beginPath(); ctx.moveTo(3, top + g * hh / 3); ctx.lineTo(U - 3, top + g * hh / 3); ctx.stroke(); }
+    c.forEach((k, i) => {
+      const [o, h, l, cl] = k, X = 3 + i * bw, up = cl >= o;
+      ctx.fillStyle = up ? '#22c55e' : '#ef4444';
+      ctx.fillRect(X + bw / 2 - 0.3, Y(h), 0.6, Math.max(0.6, Y(l) - Y(h)));
+      ctx.fillRect(X + 0.2, Math.min(Y(o), Y(cl)), Math.max(0.6, bw - 0.4), Math.max(0.8, Math.abs(Y(o) - Y(cl))));
+    });
+    if (vv.length > 1) {
+      ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 0.8; ctx.beginPath();
+      vv.forEach((v, i) => { const X = 3 + (i + (n - vv.length)) * bw + bw / 2; i ? ctx.lineTo(X, Y(v)) : ctx.moveTo(X, Y(v)); });
+      ctx.stroke();
+    }
+    // marcadores dos trades da simulação (entrada ▲/▼) quando houver replay
+    if (SIM && SIM.trades && SIM.closes) {
+      const off = SIM.closes.length - n;
+      SIM.trades.slice(0, simShown).forEach(tr => {
+        const k = tr.bar - off; if (k < 0 || k >= n) return;
+        ctx.fillStyle = tr.money > 0 ? '#4ade80' : '#f87171';
+        ctx.fillRect(3 + k * bw, top + hh + 1, Math.max(1, bw), 2);
+      });
+    }
+  } else {
+    for (let i = 0; i < 160; i++) { ctx.fillStyle = `rgba(200,210,230,${hash(i, Math.floor(t * 12)) * 0.5})`; ctx.fillRect(hash(i, 1) * U, hash(i, 2) * V, 1, 1); }
+  }
+  reset();
+}
+/* letreiro nítido (HTML) inclinado junto com a parede, por cima do telão */
+const tvl = $('tvLabel');
+function placeTVLabel() {
+  const [x, y] = P(0, (TV.y0 + TV.y1) / 2, TV.ztop - 2);
+  tvl.style.left = (x / LW * 100) + '%'; tvl.style.top = (y / LH * 100) + '%';
+  tvl.style.width = ((TV.y1 - TV.y0) * 16 / LW * 100 * 0.94) + '%';
+}
+function tvHtml() {
+  if (!S || !S.connected) return '<div class="t1">SEM SINAL MT5</div>';
+  const d = S.digits ?? 2, sc = S.signal === 'COMPRA' ? 'g' : S.signal === 'VENDA' ? 'r' : 'm';
+  return `<div class="t1"><b>${esc(S.symbol)}</b> M1 <span class="live">● ${S.market_live ? 'AO VIVO' : 'FECHADO'}</span></div>
+    <div class="t2">${nf(S.price, d)} <span class="m">VWAP</span> ${nf(S.vwap, d)}</div>
+    <div class="t2"><span class="m">RSI</span> ${nf(S.rsi, 1)} <span class="${sc}">${S.signal}</span></div>`;
+}
+
+/* ---------------------------------------------------------------- furniture */
+const DESKS = [{ x: 3.2, y: 3.6, who: 'news' }, { x: 7.6, y: 3.6, who: 'sim' }, { x: 3.2, y: 7.6, who: 'strat' }, { x: 7.6, y: 7.6, who: 'cmd' }];
+const RACKS = [{ x: 0.1, y: 0.55, w: 1.0, d: 1.1 }, { x: 0.1, y: 1.75, w: 1.0, d: 1.1 }];
+const COOLER = { x: 11.5, y: 0.3, w: 0.8, d: 0.8 };
+const COUNTER = { x: 0.1, y: 8.2, w: 1.2, d: 2.5 };
+const PLANTS = [{ x: 1.75, y: 0.55, s: 1.2 }, { x: 12.35, y: 4.8, s: 1 }, { x: 12.35, y: 10.35, s: 1.3 }, { x: 0.55, y: 7.65, s: 0.8 }, { x: 6.6, y: 10.4, s: 0.9 }];
+const OBST = [...DESKS.map(d => ({ x: d.x, y: d.y, w: 2.6, d: 1.2 })), ...RACKS, COOLER, COUNTER, ...PLANTS.map(p => ({ x: p.x - 0.3, y: p.y - 0.3, w: 0.6, d: 0.6 }))];
+
+function drawRack(r, i, t) {
+  box(r.x, r.y, 0, r.w, r.d, 74, '#1d2432');
+  faceX(r.x + r.w, r.y + r.d, 74);
+  const U = r.d * 16;
+  ctx.fillStyle = '#0a0e15'; ctx.fillRect(1, 2, U - 2, 70);
+  for (let k = 0; k < 11; k++) {
+    const v = 4 + k * 6.2;
+    ctx.fillStyle = '#2a3346'; ctx.fillRect(2, v, U - 4, 4.6);
+    for (let l = 0; l < 4; l++) {
+      const on = hash(i * 50 + k * 7 + l, Math.floor(t * (3 + l))) > 0.4;
+      ctx.fillStyle = on ? ['#22c55e', '#22c55e', '#f59e0b', '#38bdf8'][l] : '#14301f';
+      ctx.fillRect(3 + l * 2.2, v + 1.5, 1.3, 1.3);
+    }
+    ctx.fillStyle = '#475569'; ctx.fillRect(U - 6, v + 1, 3, 2.5);
+  }
+  reset();
+  faceY(r.x, r.y + r.d, 74);
+  ctx.fillStyle = 'rgba(0,0,0,.35)'; for (let k = 0; k < 8; k++) ctx.fillRect(2, 6 + k * 8, r.w * 16 - 4, 1.2);
+  reset();
+}
+function drawCooler(t) {
+  const c = COOLER;
+  box(c.x, c.y, 0, c.w, c.d, 32, '#e5e7eb');
+  faceY(c.x, c.y + c.d, 32);
+  ctx.fillStyle = '#94a3b8'; ctx.fillRect(3, 8, 7, 5);
+  ctx.fillStyle = '#38bdf8'; ctx.fillRect(4, 10, 2, 3); ctx.fillStyle = '#ef4444'; ctx.fillRect(7, 10, 2, 3);
+  ctx.fillStyle = '#cbd5e1'; ctx.fillRect(2, 20, 9, 2);
+  reset();
+  box(c.x + 0.15, c.y + 0.15, 32, 0.5, 0.5, 20, '#7cc4ff', 0.85);
+  box(c.x + 0.28, c.y + 0.28, 52, 0.24, 0.24, 3, '#2563eb');
+  faceY(c.x + 0.15, c.y + 0.65, 52);
+  for (let k = 0; k < 3; k++) { const v = 18 - ((t * 6 + k * 6) % 17); ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.fillRect(2 + k * 2, v, 1, 1); }
+  reset();
+  box(c.x + 0.85, c.y + 0.05, 0, 0.22, 0.22, 10, '#f8fafc'); // paper cups stack
+}
+function drawCounter(t) {
+  const c = COUNTER;
+  box(c.x, c.y, 0, c.w, c.d, 28, '#6b3f22');
+  faceX(c.x + c.w, c.y + c.d, 28);
+  ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.lineWidth = 0.8;
+  ctx.strokeRect(2, 4, 17, 20); ctx.strokeRect(21, 4, 17, 20);
+  ctx.fillStyle = '#d4a373'; ctx.fillRect(16, 13, 1.5, 3); ctx.fillRect(23, 13, 1.5, 3);
+  reset();
+  box(c.x - 0.02, c.y - 0.02, 28, c.w + 0.04, c.d + 0.04, 2, '#d6d3d1');
+  // espresso machine
+  box(c.x + 0.15, c.y + 0.25, 30, 0.85, 0.95, 24, '#1f2937');
+  faceX(c.x + 1.0, c.y + 1.2, 54);
+  ctx.fillStyle = '#0b0f17'; ctx.fillRect(2, 3, 11, 6);
+  ctx.fillStyle = Math.floor(t * 2) % 2 ? '#22c55e' : '#14532d'; ctx.fillRect(3, 4, 2, 2);
+  ctx.fillStyle = '#ef4444'; ctx.fillRect(7, 4, 2, 2);
+  ctx.fillStyle = '#9ca3af'; ctx.fillRect(4, 12, 7, 2); ctx.fillRect(6, 14, 3, 3);
+  ctx.fillStyle = '#4b2e1a'; ctx.fillRect(7, 17, 1, (t * 3) % 1 > 0.5 ? 3 : 1); // dripping coffee
+  reset();
+  box(c.x + 0.45, c.y + 0.95, 30, 0.22, 0.22, 4, '#f8fafc'); // cup under spout
+  box(c.x + 0.35, c.y + 1.6, 30, 0.2, 0.2, 4, '#fbbf24');
+  box(c.x + 0.7, c.y + 1.85, 30, 0.2, 0.2, 4, '#60a5fa');
+  box(c.x + 0.2, c.y + 2.05, 30, 0.35, 0.3, 8, '#78350f'); // bean jar
+  const [sx, sy] = P(c.x + 0.56, c.y + 1.06, 36);
+  for (let k = 0; k < 3; k++) { const ph = (t * 0.8 + k / 3) % 1; ctx.fillStyle = `rgba(255,255,255,${0.5 * (1 - ph)})`; ctx.fillRect(sx + Math.sin(ph * 6 + k) * 1.5, sy - ph * 10, 1, 1); }
+}
+function drawPlant(p, t) {
+  box(p.x - 0.25, p.y - 0.25, 0, 0.5, 0.5, 9, '#b45309');
+  box(p.x - 0.22, p.y - 0.22, 9, 0.44, 0.44, 1, '#3f2a14');
+  const [sx, sy] = P(p.x, p.y, 10), s = p.s, sw = Math.sin(t * 1.3 + p.x) * 0.8;
+  const leaves = [[-6, -4, '#15803d'], [3, -5, '#15803d'], [-4, -9, '#16a34a'], [2, -11, '#22c55e'], [-1, -15, '#16a34a'], [-7, -12, '#22c55e'], [5, -9, '#16a34a'], [0, -19, '#4ade80']];
+  ctx.fillStyle = '#166534'; ctx.fillRect(sx, sy - 14 * s, 1, 14 * s);
+  leaves.forEach(([dx, dy, c], i) => { ctx.fillStyle = c; ctx.fillRect(Math.round(sx + dx * s + sw * (i % 3)), Math.round(sy + dy * s), Math.round(5 * s), Math.round(3 * s)); });
+}
+function drawChair(x, y, col) {
+  box(x - 0.05, y - 0.05, 0, 0.1, 0.1, 7, '#111827');
+  box(x - 0.3, y - 0.3, 7, 0.6, 0.6, 2.5, col);
+  box(x - 0.3, y - 0.42, 9, 0.6, 0.12, 15, col);
+}
+function drawScreen(who, k, U, V, t) {
+  ctx.fillStyle = '#04101c'; ctx.fillRect(1, 1, U - 2, V - 4);
+  const x = 1.5, y = 2, w = U - 3, h = V - 6;
+  if (!S || !S.closes || S.closes.length < 2) {
+    ctx.fillStyle = `rgba(148,163,184,${0.3 + 0.3 * Math.sin(t * 4 + k)})`; ctx.fillRect(x + 2, y + h / 2, w - 4, 1); return;
+  }
+  const line = (arr, col) => {
+    let mn = Math.min(...arr), mx = Math.max(...arr); if (mx === mn) mx = mn + 1;
+    ctx.strokeStyle = col; ctx.lineWidth = 0.7; ctx.beginPath();
+    arr.forEach((v, i) => { const px = x + i / (arr.length - 1) * w, py = y + h - (v - mn) / (mx - mn) * h; i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); });
+    ctx.stroke();
+  };
+  const bars = vals => vals.forEach(([v, c], i) => { ctx.fillStyle = c; const bh = Math.max(0.5, v * h); ctx.fillRect(x + 0.5 + i * (w / vals.length), y + h - bh, w / vals.length - 1, bh); });
+  const cl = S.closes, up = cl[cl.length - 1] >= cl[0];
+  if (who === 'news') { k ? line(cl.slice(-30), '#38bdf8') : line(cl, up ? '#22c55e' : '#ef4444'); }
+  else if (who === 'sim') {
+    const m = S.mc;
+    if (k === 0 && m) bars([[m.long_win, '#22c55e'], [m.long_loss, '#ef4444'], [m.short_win, '#22c55e'], [m.short_loss, '#ef4444']]);
+    else { for (let i = 0; i < 6; i++) { const arr = [0]; for (let j = 1; j < 20; j++) arr.push(arr[j - 1] + (hash(i * 31 + j, Math.floor(t / 2)) - 0.5)); ctx.globalAlpha = 0.6; line(arr, '#a78bfa'); } ctx.globalAlpha = 1; }
+  }
+  else if (who === 'strat') {
+    if (k === 0) line(cl, up ? '#22c55e' : '#ef4444');
+    else if (S.vwaps) { line(S.vwaps, '#fbbf24'); }
+  }
+  else {
+    const sc = S.score || { wins: 0, losses: 0 }, tot = Math.max(1, sc.wins + sc.losses);
+    if (k === 0) bars([[sc.wins / tot, '#22c55e'], [sc.losses / tot, '#ef4444']]);
+    else line(cl.slice(-40), up ? '#22c55e' : '#ef4444');
+  }
+  ctx.fillStyle = 'rgba(255,255,255,.05)'; ctx.fillRect(1, 1, U - 2, (V - 4) / 2);
+}
+function drawDesk(d, t) {
+  const { x, y } = d, cmd = d.who === 'cmd';
+  box(x + 0.15, y + 1.0, 2, 2.3, 0.08, 12, '#5c381c');
+  [[0.05, 0.05], [2.4, 0.05], [0.05, 1.0], [2.4, 1.0]].forEach(([a, b]) => box(x + a, y + b, 0, 0.15, 0.15, 14, '#3f2716'));
+  box(x, y, 14, 2.6, 1.2, 3, cmd ? '#7c4a1e' : '#9a6235');
+  if (cmd) { faceY(x, y + 1.2, 17); ctx.fillStyle = '#fbbf24'; ctx.fillRect(0, 0, 41.6, 1); reset(); }
+  for (let k = 0; k < 2; k++) {
+    const mx = x + 0.1 + k * 0.92, my = y + 0.42;
+    box(mx + 0.18, my - 0.12, 17, 0.5, 0.28, 1, '#1f2937');
+    box(mx + 0.38, my + 0.0, 18, 0.1, 0.1, 5, '#374151');
+    box(mx, my, 23, 0.86, 0.1, 16, '#0b0f17');
+    faceY(mx, my + 0.1, 39); drawScreen(d.who, k, 13.76, 16, t); reset();
+  }
+  box(x + 0.6, y + 0.12, 17, 0.8, 0.22, 1, '#cbd5e1');
+  box(x + 1.55, y + 0.14, 17, 0.12, 0.18, 1, '#e5e7eb');
+  box(x + 1.95, y + 0.3, 17, 0.45, 0.32, 0.6, '#f1f5f9');
+  box(x + 2.25, y + 0.8, 17, 0.18, 0.18, 4, cmd ? '#fbbf24' : '#f8fafc');
+  if (cmd) { // little flag
+    const [fx, fy] = P(x + 2.3, y + 0.25, 17);
+    ctx.fillStyle = '#94a3b8'; ctx.fillRect(fx, fy - 12, 1, 12);
+    ctx.fillStyle = '#16a34a'; ctx.fillRect(fx + 1, fy - 12, 6, 4); ctx.fillStyle = '#facc15'; ctx.fillRect(fx + 3, fy - 11, 2, 2);
+  }
+}
+
+/* ---------------------------------------------------------------- pathfinding grid */
+const CS = 0.5, GX = W / CS | 0, GY = H / CS | 0, BLOCK = new Uint8Array(GX * GY);
+for (let i = 0; i < GX; i++) for (let j = 0; j < GY; j++) {
+  const cx = (i + 0.5) * CS, cy = (j + 0.5) * CS;
+  let b = cx < 0.45 || cy < 0.45 || cx > W - 0.45 || cy > H - 0.45;
+  for (const o of OBST) if (cx > o.x - 0.25 && cx < o.x + o.w + 0.25 && cy > o.y - 0.25 && cy < o.y + o.d + 0.25) { b = true; break; }
+  BLOCK[j * GX + i] = b ? 1 : 0;
+}
+const cellOf = (x, y) => Math.min(GY - 1, Math.max(0, Math.floor(y / CS))) * GX + Math.min(GX - 1, Math.max(0, Math.floor(x / CS)));
+function findPath(sx, sy, tx, ty) {
+  const s = cellOf(sx, sy), g = cellOf(tx, ty), prev = new Int32Array(GX * GY).fill(-1), q = [s];
+  prev[s] = s;
+  const dirs = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+  for (let h = 0; h < q.length; h++) {
+    const c = q[h]; if (c === g) break;
+    const ci = c % GX, cj = (c / GX) | 0;
+    for (const [dx, dy] of dirs) {
+      const ni = ci + dx, nj = cj + dy;
+      if (ni < 0 || nj < 0 || ni >= GX || nj >= GY) continue;
+      const n = nj * GX + ni;
+      if (prev[n] !== -1 || (BLOCK[n] && n !== g)) continue;
+      if (dx && dy && (BLOCK[cj * GX + ni] || BLOCK[nj * GX + ci])) continue;
+      prev[n] = c; q.push(n);
+    }
+  }
+  if (prev[g] === -1) return [{ x: tx, y: ty }];
+  const cells = []; for (let c = g; c !== s; c = prev[c]) cells.push(c);
+  cells.reverse();
+  const pts = cells.map(c => ({ x: (c % GX + 0.5) * CS, y: (((c / GX) | 0) + 0.5) * CS }));
+  pts.pop(); pts.push({ x: tx, y: ty });
+  return pts.filter((p, i) => { // drop collinear points
+    if (i === 0 || i === pts.length - 1) return true;
+    const a = pts[i - 1], b = pts[i + 1];
+    return Math.abs((p.x - a.x) * (b.y - p.y) - (p.y - a.y) * (b.x - p.x)) > 1e-6;
+  });
+}
+
+/* ---------------------------------------------------------------- robots */
+const SPOTS = {
+  water: { x: 11.9, y: 1.75, face: 1 }, coffee: { x: 1.95, y: 9.45, face: -1 }, board: { x: 1.95, y: 5.6, face: -1 },
+  rack: { x: 1.85, y: 2.15, face: -1 }, window: { x: 6.6, y: 1.25, face: 1 }, window2: { x: 4.2, y: 1.35, face: 1 },
+  visit: { x: 10.9, y: 8.45, face: -1 }, board2: { x: 2.0, y: 4.2, face: -1 },
+};
+const BOTS = [
+  { id: 'news', name: 'SENTINELA', color: '#3b82f6', cup: 'coffee' },
+  { id: 'sim', name: 'MONTE CARLO', color: '#8b5cf6', cup: 'water' },
+  { id: 'strat', name: 'ESTRATEGISTA', color: '#f59e0b', cup: 'coffee' },
+  { id: 'cmd', name: 'COMANDANTE MT5', color: '#10b981', cup: 'coffee', cmd: true },
+];
+const nowS = () => performance.now() / 1000;
+BOTS.forEach((b, i) => {
+  const d = DESKS[i];
+  b.deskSpot = { x: d.x + 1.3, y: d.y - 0.5, face: -1 };
+  Object.assign(b, { x: b.deskSpot.x, y: b.deskSpot.y, path: [], dest: 'desk', sitting: true, face: -1, moving: false, seed: i * 1.7, idleUntil: nowS() + 2 + i * 2.5, jumpUntil: 0, speed: 1.5 + i * 0.12 });
+});
+function spotOf(b, name) { return name === 'desk' ? b.deskSpot : SPOTS[name]; }
+function goTo(b, name) {
+  const sp = spotOf(b, name);
+  b.dest = name; b.sitting = false; b.path = findPath(b.x, b.y, sp.x, sp.y);
+}
+function chooseNext(b) {
+  const taken = new Set(BOTS.filter(o => o !== b).map(o => o.dest));
+  const W8 = b.cmd ? { desk: 70, coffee: 9, water: 8, board: 7, window: 6 }
+    : { desk: 40, coffee: 12, water: 12, board: 11, board2: 4, rack: 8, window: 7, window2: 4, visit: 8 };
+  const opts = Object.entries(W8).filter(([k]) => k === 'desk' || !taken.has(k));
+  let r = Math.random() * opts.reduce((a, [, w]) => a + w, 0);
+  for (const [k, w] of opts) { if ((r -= w) <= 0) return goTo(b, k); }
+  goTo(b, 'desk');
+}
+function arrive(b) {
+  const sp = spotOf(b, b.dest);
+  b.face = sp.face; b.sitting = b.dest === 'desk'; b.moving = false;
+  if (b.dest === 'coffee') b.cup = 'coffee';
+  if (b.dest === 'water') b.cup = 'water';
+  b.idleUntil = nowS() + (b.dest === 'desk' ? 7 + Math.random() * 10 : 3 + Math.random() * 4);
+}
+function updateBot(b, dt, t) {
+  if (b.path.length) {
+    const tg = b.path[0], dx = tg.x - b.x, dy = tg.y - b.y, dist = Math.hypot(dx, dy), step = b.speed * dt;
+    const sdx = dx - dy; if (Math.abs(sdx) > 0.01) b.face = sdx > 0 ? 1 : -1;
+    b.moving = true;
+    if (dist <= step) { b.x = tg.x; b.y = tg.y; b.path.shift(); if (!b.path.length) arrive(b); }
+    else { b.x += dx / dist * step; b.y += dy / dist * step; }
+  } else if (t > b.idleUntil) chooseNext(b);
+}
+function drawRobot(b, t) {
+  const [sx, sy] = P(b.x, b.y, 0), f = b.face, col = b.color;
+  const ph = b.moving ? Math.sin(t * 11 + b.seed) : 0;
+  const jump = t < b.jumpUntil ? Math.round(Math.abs(Math.sin((b.jumpUntil - t) * 9)) * 6) : 0;
+  const bob = b.moving ? Math.round(Math.abs(ph)) : 0;
+  const base = sy - (b.sitting ? 5 : 0) - bob - jump;
+  ctx.fillStyle = 'rgba(0,0,0,.32)'; ctx.beginPath(); ctx.ellipse(sx, sy, 6, 2.5, 0, 0, 7); ctx.fill();
+  // legs
+  if (!b.sitting) {
+    const lift1 = Math.max(0, ph) * 2.5, lift2 = Math.max(0, -ph) * 2.5, sw = ph * 1.5 * f;
+    ctx.fillStyle = '#4b5563';
+    ctx.fillRect(Math.round(sx - 4 + sw), Math.round(base - 8), 3, Math.round(7 - lift1));
+    ctx.fillRect(Math.round(sx + 1 - sw), Math.round(base - 8), 3, Math.round(7 - lift2));
+    ctx.fillStyle = '#1f2937';
+    ctx.fillRect(Math.round(sx - 5 + sw), Math.round(base - 1 - lift1), 4, 2);
+    ctx.fillRect(Math.round(sx + 1 - sw), Math.round(base - 1 - lift2), 4, 2);
+  } else {
+    ctx.fillStyle = '#4b5563'; ctx.fillRect(sx - 4, base - 3, 3, 3); ctx.fillRect(sx + 1, base - 3, 3, 3);
+  }
+  const by = base - 18;
+  // body
+  ctx.fillStyle = col; ctx.fillRect(sx - 6, by, 12, 11);
+  ctx.fillStyle = shade(col, 0.68); ctx.fillRect(f > 0 ? sx - 6 : sx + 3, by, 3, 11);
+  ctx.fillStyle = shade(col, 1.3); ctx.fillRect(sx - 6, by, 12, 1);
+  ctx.fillStyle = '#0f172a'; ctx.fillRect(sx - 3, by + 3, 6, 4);
+  const led = Math.floor(t * 3 + b.seed) % 3;
+  ctx.fillStyle = led === 0 ? '#f87171' : led === 1 ? '#4ade80' : '#60a5fa'; ctx.fillRect(sx - 2 + led * 2, by + 4, 1, 2);
+  if (b.cmd) { ctx.fillStyle = '#fbbf24'; ctx.fillRect(sx + (f > 0 ? 3 : -5), by + 2, 2, 2); }
+  // arms + cup
+  const swing = b.moving ? Math.round(ph * 1.5) : 0;
+  ctx.fillStyle = '#9ca3af';
+  ctx.fillRect(sx - 8, by + 1 + swing, 2, 7); ctx.fillRect(sx + 6, by + 1 - swing, 2, 7);
+  const hx = f > 0 ? sx + 7 : sx - 10, hy = by + 5 - (f > 0 ? -swing : swing);
+  ctx.fillStyle = '#9ca3af'; ctx.fillRect(f > 0 ? sx + 6 : sx - 9, hy + 2, 3, 2);
+  if (b.cup === 'water') { ctx.fillStyle = 'rgba(186,230,253,.9)'; ctx.fillRect(hx, hy - 1, 4, 5); ctx.fillStyle = '#38bdf8'; ctx.fillRect(hx, hy + 1, 4, 3); }
+  else {
+    ctx.fillStyle = '#f8fafc'; ctx.fillRect(hx, hy - 1, 4, 5); ctx.fillStyle = '#7c2d12'; ctx.fillRect(hx, hy - 1, 4, 1);
+    ctx.fillStyle = '#f8fafc'; ctx.fillRect(f > 0 ? hx + 4 : hx - 1, hy, 1, 2);
+    for (let k = 0; k < 2; k++) { const p2 = (t * 0.9 + k * 0.5 + b.seed) % 1; ctx.fillStyle = `rgba(255,255,255,${0.55 * (1 - p2)})`; ctx.fillRect(hx + 1 + Math.round(Math.sin(p2 * 7 + k)), hy - 2 - Math.round(p2 * 7), 1, 1); }
+  }
+  // head
+  const hy0 = by - 9;
+  ctx.fillStyle = '#374151'; ctx.fillRect(sx - 1, by - 1, 2, 1);
+  ctx.fillStyle = '#d1d5db'; ctx.fillRect(sx - 5, hy0, 10, 8);
+  ctx.fillStyle = '#9ca3af'; ctx.fillRect(f > 0 ? sx - 5 : sx + 3, hy0, 2, 8);
+  ctx.fillStyle = '#0f172a'; ctx.fillRect(sx - 4, hy0 + 2, 8, 4);
+  const blink = (t + b.seed * 3) % 4 < 0.15;
+  ctx.fillStyle = shade(col, 1.45);
+  const ex = sx - 3 + (f > 0 ? 2 : 0);
+  ctx.fillRect(ex, hy0 + 3, 2, blink ? 1 : 2); ctx.fillRect(ex + 3, hy0 + 3, 2, blink ? 1 : 2);
+  // antenna / cap
+  if (b.cmd) {
+    ctx.fillStyle = '#fbbf24'; ctx.fillRect(sx - 6, hy0 - 2, 12, 2); ctx.fillRect(f > 0 ? sx + 3 : sx - 9, hy0 - 1, 6, 1);
+    ctx.fillStyle = '#b45309'; ctx.fillRect(sx - 1, hy0 - 2, 2, 2);
+  } else {
+    ctx.fillStyle = '#6b7280'; ctx.fillRect(sx, hy0 - 4, 1, 4);
+    ctx.fillStyle = Math.floor(t * 2 + b.seed) % 2 ? shade(col, 1.4) : shade(col, 0.6); ctx.fillRect(sx - 1, hy0 - 6, 3, 2);
+  }
+  b.anchor = [sx, hy0 - 7];
+}
+
+/* ---------------------------------------------------------------- overlays (balões + placar) */
+const stage = $('stage');
+BOTS.forEach(b => {
+  const ov = document.createElement('div'); ov.className = 'ov';
+  const fl = document.createElement('div'); fl.className = 'float'; fl.style.animationDelay = (-b.seed) + 's';
+  if (b.cmd) { b.scoreEl = document.createElement('div'); b.scoreEl.className = 'score'; fl.appendChild(b.scoreEl); }
+  b.bubEl = document.createElement('div'); b.bubEl.className = 'bubble';
+  b.stem = document.createElement('div'); b.stem.className = 'stem';
+  fl.appendChild(b.bubEl); ov.appendChild(fl); ov.appendChild(b.stem); stage.appendChild(ov);
+  b.ovEl = ov; b.fl = fl; b.lastHtml = '';
+});
+function fx(b, text, color) {
+  const e = document.createElement('div'); e.className = 'fx'; e.textContent = text; e.style.color = color;
+  e.style.left = b.ovEl.style.left; e.style.top = b.ovEl.style.top; stage.appendChild(e); setTimeout(() => e.remove(), 2100);
+}
+/* balões nunca se sobrepõem: quem está mais ao fundo sobe numa "haste" */
+function placeOverlays() {
+  const SW = stage.clientWidth, SH = stage.clientHeight, placed = [];
+  BOTS.filter(b => b.anchor).sort((a, b) => b.anchor[1] - a.anchor[1]).forEach(b => {
+    const x = b.anchor[0] / LW * SW, y = b.anchor[1] / LH * SH;
+    const w = b.fl.offsetWidth, h = b.fl.offsetHeight + 6;
+    let lift = 0;
+    for (let it = 0; it < 10; it++) {
+      let moved = false;
+      for (const p of placed) {
+        const top = y - lift - h, bot = y - lift;
+        if (Math.abs(x - p.x) < (w + p.w) / 2 + 6 && top < p.bot + 4 && bot > p.top - 4) { lift = y - p.top + 6; moved = true; }
+      }
+      if (!moved) break;
+    }
+    b.lift = (b.lift || 0) + (lift - (b.lift || 0)) * 0.18;
+    placed.push({ x, w, top: y - lift - h, bot: y - lift });
+    b.ovEl.style.left = x + 'px'; b.ovEl.style.top = y + 'px';
+    b.stem.style.height = Math.max(0, b.lift - 2) + 'px';
+  });
+}
+
+/* ---------------------------------------------------------------- formatting */
+const nf = (v, d = 2) => v == null || isNaN(v) ? '—' : Number(v).toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
+const pc = v => v == null ? '—' : Math.round(v * 100) + '%';
+const cur = () => (S && S.account && S.account.currency === 'BRL') ? 'R$' : (S && S.account ? S.account.currency : '');
+const money = v => v == null ? '—' : (v >= 0 ? '+' : '−') + cur() + ' ' + nf(Math.abs(v), 2);
+const esc = s => String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+function bubbleHtml(b) {
+  const tag = `<span class="nm" style="background:${b.color}">${b.name}</span>`;
+  if (!S || !S.connected) return `${tag}<span class="l">MT5 desconectado</span><span class="l l2">abra o terminal</span>`;
+  const d = S.digits ?? 2, m = S.mc;
+  if (b.id === 'news') return `${tag}<span class="l"><b>${esc(S.symbol)}</b> ${nf(S.price, d)} · spread ${S.spread ?? '—'}</span><span class="l l2">VWAP ${nf(S.vwap, d)} (${S.dist_vwap_pct == null ? '—' : (S.dist_vwap_pct >= 0 ? '+' : '') + nf(S.dist_vwap_pct, 2) + '%'})</span>`;
+  if (b.id === 'sim') return m ? `${tag}<span class="l">${m.paths}x · ${m.horizon} min à frente</span><span class="l l2">Compra <b style="color:#15803d">${pc(m.long_win)}</b>/<b style="color:#b91c1c">${pc(m.long_loss)}</b> · Venda <b style="color:#15803d">${pc(m.short_win)}</b>/<b style="color:#b91c1c">${pc(m.short_loss)}</b></span>`
+    : `${tag}<span class="l">Aguardando ${S.bars}/30 barras</span>`;
+  if (b.id === 'strat') return `${tag}<span class="l">RSI ${nf(S.rsi, 1)} · ATR ${nf(S.atr, d)}</span><span class="l">SINAL: <span class="sig-${S.signal}">${S.signal}</span></span>`;
+  const p = S.position;
+  const l1 = p ? `${p.type} ${p.volume} @ ${nf(p.price_open, d)} <b style="color:${p.profit >= 0 ? '#15803d' : '#b91c1c'}">${money(p.profit)}</b>` : 'Sem posição aberta';
+  return `${tag}<span class="l">${l1}</span><span class="l l2">${esc(S.trade_symbol || '—')} · AUTO ${S.auto_trade ? '<b style="color:#15803d">ON</b>' : 'OFF'}</span>`;
+}
+function scoreHtml() {
+  const sc = (S && S.score) || { wins: 0, losses: 0, pnl: 0 };
+  let h = `<span class="w">WIN ${sc.wins}</span> | <span class="lo">LOSS ${sc.losses}</span><br>${money(sc.pnl)}`;
+  if (SIM && SIM.ok) {
+    const done = SIM.trades.slice(0, simShown), w = done.filter(t => t.money > 0).length, p = done.reduce((a, t) => a + t.money, 0);
+    h += `<div style="border-top:1px dashed #fbbf24;margin-top:2px;font-size:.85em">SIMULAÇÃO ${simShown}/${SIM.trades.length}: <span class="w">${w}W</span>/<span class="lo">${done.length - w}L</span> ${money(p)}</div>`;
+  }
+  return h;
+}
+
+/* ---------------------------------------------------------------- HUD */
+function kv(el, rows) { el.innerHTML = rows.map(([k, v]) => `<span>${k}</span><span>${v}</span>`).join(''); }
+function onState() {
+  const a = S.account, d = S.digits ?? 2;
+  $('tickTxt').textContent = S.ticker || '';
+  const bc = $('bConn'); bc.textContent = S.connected ? 'MT5 CONECTADO' : 'MT5 OFFLINE'; bc.className = 'badge ' + (S.connected ? 'ok' : 'bad');
+  const bm = $('bMode'); bm.textContent = a ? 'CONTA ' + a.mode : 'CONTA ?'; bm.className = 'badge ' + (a ? (a.mode === 'REAL' ? 'real' : 'demo') : '');
+  const ba = $('bAlgo'); ba.textContent = a ? (a.algo_enabled ? 'ALGO TRADING ON' : 'ALGO TRADING OFF') : 'ALGO ?'; ba.className = 'badge ' + (a ? (a.algo_enabled ? 'ok' : 'bad') : '');
+  $('bTime').textContent = 'atualizado ' + (S.updated || '--');
+  const al = [];
+  if (S.error) al.push(['err', esc(S.error)]);
+  if (a && a.mode === 'REAL') al.push(['err', `CONTA REAL ${esc(a.login)}: com AUTO-TRADE ON as ordens usam dinheiro de verdade.`]);
+  if (a && !a.algo_enabled) al.push(['warn', '<b>Algo Trading</b> desligado no MT5: ordens bloqueadas.']);
+  if (a && a.balance <= 0) al.push(['warn', `Saldo ${cur()} ${nf(a.balance)}: sem margem para ordens.`]);
+  if (S.connected && S.is_today && S.market_live === false) al.push(['warn', 'Mercado sem ticks novos (fechado/parado): nenhuma ordem será enviada.']);
+  if (S.connected && S.session_date && !S.is_today) al.push(['warn', `Os candles exibidos são do último pregão (${esc(S.session_date)}). Mercado fechado agora: nenhuma ordem será enviada.`]);
+  if (S.circuit_breaker) al.push(['err', 'CIRCUIT BREAKER: perda diária máxima atingida. Auto-trade travado até amanhã.']);
+  $('alerts').innerHTML = al.map(([c, t]) => `<div class="alert ${c}">${t}</div>`).join('');
+
+  kv($('kvAcc'), a ? [['Login', a.login], ['Servidor', esc(a.server)], ['Tipo', a.mode], ['Saldo', cur() + ' ' + nf(a.balance)], ['Patrimônio', cur() + ' ' + nf(a.equity)], ['Margem livre', cur() + ' ' + nf(a.margin_free)]] : [['Status', 'sem conta']]);
+  kv($('kvMkt'), [['Dados', esc(S.symbol || '—')], ['Ordens em', esc(S.trade_symbol || '—')], ['Pregão', esc(S.session_date || '—') + ` (${S.bars} barras M1)`],
+    ['Preço', nf(S.price, d)], ['VWAP', nf(S.vwap, d)], ['RSI(14)', nf(S.rsi, 1)], ['ATR(14)', nf(S.atr, d)], ['Spread', S.spread ?? '—'],
+    ['Sinal', `<b class="sig-${S.signal}" style="color:${S.signal === 'COMPRA' ? 'var(--green)' : S.signal === 'VENDA' ? 'var(--red)' : 'var(--mut)'}">${S.signal}</b>`]]);
+  const m = S.mc;
+  $('mcBox').innerHTML = m ? `
+    <div class="small">${m.paths} caminhos · ${m.horizon} barras · stop 1,5×ATR / alvo 3×ATR</div>
+    Compra: alvo ${pc(m.long_win)} · stop ${pc(m.long_loss)}<div class="bar"><i style="width:${m.long_win * 100}%;background:var(--green)"></i></div>
+    Venda: alvo ${pc(m.short_win)} · stop ${pc(m.short_loss)}<div class="bar"><i style="width:${m.short_win * 100}%;background:var(--red)"></i></div>
+    <div class="small">Faixa 90% em ${m.horizon} min: ${nf(m.p5, d)} → ${nf(m.p95, d)}</div>
+    <div class="small">${esc(S.reason)}</div>` : `<div class="small">${esc(S.reason || 'aguardando...')}</div>`;
+  const p = S.position, sc = S.score || {};
+  kv($('kvPos'), [['Posição', p ? `${p.type} ${p.volume} @ ${nf(p.price_open, d)}` : 'nenhuma'], ['SL / TP', p ? `${nf(p.sl, d)} / ${nf(p.tp, d)}` : '—'],
+    ['P&L aberto', p ? money(p.profit) : '—'], ['Placar hoje', `${sc.wins || 0}W / ${sc.losses || 0}L`], ['P&L robô hoje', money(sc.pnl || 0)], ['Lote', S.lots ?? '—']]);
+  const btn = $('btnAuto'); btn.classList.toggle('on', !!S.auto_trade); btn.textContent = 'AUTO-TRADE MT5: ' + (S.auto_trade ? 'ON' : 'OFF');
+  const lg = $('log'); const atBottom = lg.scrollTop + lg.clientHeight >= lg.scrollHeight - 4;
+  lg.innerHTML = '<h3>Log da mesa</h3>' + (S.logs || []).map(l => `<div>${esc(l)}</div>`).join('');
+  if (atBottom) lg.scrollTop = lg.scrollHeight;
+
+  // bubbles
+  BOTS.forEach(b => {
+    const h = bubbleHtml(b);
+    if (h !== b.lastHtml) { b.bubEl.innerHTML = h; b.bubEl.classList.remove('pop'); void b.bubEl.offsetWidth; b.bubEl.classList.add('pop'); b.lastHtml = h; }
+    if (b.scoreEl) b.scoreEl.innerHTML = scoreHtml();
+  });
+  // events -> robot reactions
+  const cmd = BOTS[3], strat = BOTS[2];
+  if (sc && lastWins != null && sc.wins > lastWins) { cmd.jumpUntil = nowS() + 2.5; fx(cmd, 'WIN!', '#4ade80'); BOTS.forEach(b => { if (!b.cmd) b.jumpUntil = nowS() + 1.5; }); }
+  if (sc && lastLosses != null && sc.losses > lastLosses) fx(cmd, 'LOSS', '#f87171');
+  lastWins = sc.wins ?? 0; lastLosses = sc.losses ?? 0;
+  if (lastSignal != null && S.signal !== lastSignal && S.signal !== 'AGUARDAR') { if (!strat.path.length) goTo(strat, 'visit'); fx(strat, S.signal, S.signal === 'COMPRA' ? '#4ade80' : '#f87171'); }
+  lastSignal = S.signal;
+  const L = S.logs || [];
+  if (L.length && L[L.length - 1] !== onState.lastLine) {
+    const ln = L[L.length - 1];
+    if (onState.lastLine !== undefined && ln.includes('ORDEM ENVIADA')) { fx(cmd, 'ORDEM!', '#fbbf24'); cmd.jumpUntil = nowS() + 1.5; }
+    onState.lastLine = ln;
+  }
+}
+
+async function poll() {
+  try {
+    const r = await fetch('/api/state', { cache: 'no-store' });
+    S = await r.json(); onState();
+  } catch (e) {
+    $('bConn').textContent = 'SERVIDOR OFFLINE'; $('bConn').className = 'badge bad';
+    $('alerts').innerHTML = '<div class="alert err">Sem resposta do servidor Python. Rode: <b>py -3.12 scripts/mt5_live_trader.py</b></div>';
+  }
+  setTimeout(poll, 1000);
+}
+async function post(url, body) {
+  try { const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) }); return await r.json(); }
+  catch (e) { return { ok: false, msg: 'servidor offline' }; }
+}
+$('btnAuto').onclick = async () => {
+  const r = await post('/api/toggle', {});
+  if (r.need_confirm) {
+    const a = S && S.account;
+    $('mInfo').innerHTML = a ? `Conta <b>${esc(a.login)}</b> · ${esc(a.server)}<br>Saldo ${cur()} ${nf(a.balance)} · ordens em <b>${esc(S.trade_symbol)}</b> · lote ${S.lots}` : '';
+    $('mChk').checked = false; $('mOk').disabled = true; $('modal').showModal();
+  } else if (!r.ok && r.msg) alert(r.msg);
+};
+$('mChk').onchange = e => { $('mOk').disabled = !e.target.checked; };
+$('mNo').onclick = () => $('modal').close();
+$('mOk').onclick = async () => { $('modal').close(); await post('/api/toggle', { confirm_real: true }); };
+$('btnPanic').onclick = () => post('/api/panic', {});
+
+/* ---------------------------------------------------------------- simulação do dia (backtest, sem ordens) */
+$('btnSim').onclick = async () => {
+  const btn = $('btnSim'); btn.disabled = true; btn.textContent = 'SIMULANDO O PREGÃO...';
+  if (simTimer) clearInterval(simTimer);
+  ['board', 'board2', 'window', 'visit'].forEach((spot, i) => { if (!BOTS[i].cmd) goTo(BOTS[i], spot); });
+  const r = await post('/api/backtest', {});
+  btn.disabled = false; btn.textContent = '▶ SIMULAR O DIA DE HOJE';
+  const card = $('simCard'); card.hidden = false;
+  if (!r.ok) { SIM = null; $('simTitle').textContent = 'Simulação do dia'; $('simSum').innerHTML = `<div class="neg">${esc(r.msg || 'falhou')}</div>`; $('simTbl').innerHTML = ''; $('simNote').textContent = ''; return; }
+  SIM = r; simShown = 0;
+  renderSim(); card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  if (!r.trades.length) { fx(BOTS[3], 'SEM SINAIS', '#94a3b8'); return; }
+  simTimer = setInterval(() => {
+    simShown++;
+    const t = SIM.trades[simShown - 1], cmd = BOTS[3];
+    fx(cmd, (t.money > 0 ? 'WIN ' : 'LOSS ') + money(t.money), t.money > 0 ? '#4ade80' : '#f87171');
+    if (t.money > 0) { cmd.jumpUntil = nowS() + 1.2; BOTS.forEach(b => { if (!b.cmd && !b.path.length) b.jumpUntil = nowS() + 0.8; }); }
+    BOTS[3].scoreEl.innerHTML = scoreHtml(); renderSim();
+    if (simShown >= SIM.trades.length) { clearInterval(simTimer); simTimer = null; }
+  }, 900);
+};
+function renderSim() {
+  const r = SIM, d = (S && S.digits) ?? 0, done = r.trades.slice(0, simShown);
+  const w = done.filter(t => t.money > 0).length, p = done.reduce((a, t) => a + t.money, 0), pts = done.reduce((a, t) => a + t.points, 0);
+  $('simTitle').textContent = `Simulação do pregão ${r.date.split('-').reverse().join('/')} · ${r.symbol} → ${r.trade_symbol} · ${r.first}–${r.last} (${r.bars} candles M1)`;
+  const box = (k, v, c = '') => `<div>${k}<b class="${c}">${v}</b></div>`;
+  $('simSum').innerHTML = box('Trades', `${done.length}/${r.trades.length}`) + box('Ganhos', w, 'pos') + box('Perdas', done.length - w, 'neg')
+    + box('Acerto', done.length ? Math.round(w / done.length * 100) + '%' : '—') + box('Pontos', (pts >= 0 ? '+' : '') + nf(pts, 0), pts >= 0 ? 'pos' : 'neg')
+    + box(`Resultado (${r.lots} lote)`, money(p), p >= 0 ? 'pos' : 'neg') + box('Drawdown máx.', money(r.max_dd), 'neg');
+  $('simNote').textContent = r.trades.length
+    ? `Mesma regra do robô ao vivo (VWAP + RSI + Monte Carlo ${r.paths}x), entrada na abertura do candle seguinte, stop conta primeiro se stop e alvo caem no mesmo candle, máximo ${10} trades/dia, sem corretagem/emolumentos/slippage. 1 ponto = ${cur()} ${nf(r.point_value, 2)} por lote. Nenhuma ordem foi enviada.`
+    : 'Nenhum sinal hoje com as regras atuais (VWAP + RSI + Monte Carlo). Nenhuma ordem foi enviada.';
+  $('simTbl').innerHTML = '<tr><th>#</th><th>Lado</th><th>Entrada</th><th>Saída</th><th>RSI</th><th>MC alvo</th><th>Motivo</th><th>Pontos</th><th>Resultado</th></tr>'
+    + r.trades.map((t, i) => `<tr class="${i >= simShown ? 'pend' : i === simShown - 1 ? 'cur' : ''}"><td>${i + 1}</td><td class="${t.side === 'BUY' ? 'pos' : 'neg'}">${t.side === 'BUY' ? 'COMPRA' : 'VENDA'}</td>
+      <td>${t.entry_time} @ ${nf(t.entry, d)}</td><td>${t.exit_time} @ ${nf(t.exit, d)}</td><td>${nf(t.rsi, 1)}</td><td>${pc(t.mc)}</td><td>${t.reason}</td>
+      <td class="${t.points >= 0 ? 'pos' : 'neg'}">${t.points >= 0 ? '+' : ''}${nf(t.points, 0)}</td><td class="${t.money >= 0 ? 'pos' : 'neg'}">${money(t.money)}</td></tr>`).join('');
+  drawEquity();
+}
+function drawEquity() {
+  const cv2 = $('eq'), g = cv2.getContext('2d'), Wd = cv2.width, Hd = cv2.height, r = SIM;
+  g.clearRect(0, 0, Wd, Hd);
+  const pad = 40, eq = [0, ...r.equity], shown = eq.slice(0, simShown + 1);
+  let mn = Math.min(0, ...eq), mx = Math.max(0, ...eq); if (mx === mn) mx = mn + 1;
+  const X = i => pad + i / Math.max(1, eq.length - 1) * (Wd - pad * 2), Y = v => Hd - pad - (v - mn) / (mx - mn) * (Hd - pad * 2);
+  g.strokeStyle = '#334155'; g.lineWidth = 2; g.setLineDash([8, 8]); g.beginPath(); g.moveTo(pad, Y(0)); g.lineTo(Wd - pad, Y(0)); g.stroke(); g.setLineDash([]);
+  g.fillStyle = '#8a96ab'; g.font = '22px VT323, monospace'; g.textAlign = 'left';
+  g.fillText('Curva de capital da simulação (' + cur() + ')', pad, 26); g.textAlign = 'right';
+  g.fillText(money(mx), Wd - 8, Y(mx) + 6); g.fillText(money(mn), Wd - 8, Y(mn) + 6);
+  if (shown.length > 1) {
+    g.strokeStyle = shown[shown.length - 1] >= 0 ? '#22c55e' : '#ef4444'; g.lineWidth = 4; g.beginPath();
+    shown.forEach((v, i) => i ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v))); g.stroke();
+    shown.forEach((v, i) => { if (!i) return; g.fillStyle = r.trades[i - 1].money > 0 ? '#4ade80' : '#f87171'; g.fillRect(X(i) - 5, Y(v) - 5, 10, 10); });
+  }
+}
+
+/* ---------------------------------------------------------------- render loop */
+let lastT = nowS();
+function frame() {
+  const t = nowS(), dt = Math.min(0.1, t - lastT); lastT = t;
+  BOTS.forEach(b => updateBot(b, dt, t));
+  reset(); ctx.clearRect(0, 0, LW, LH);
+  if (S) { const h = tvHtml(); if (h !== tvl._h) { tvl.innerHTML = h; tvl._h = h; } }
+  ctx.fillStyle = '#0b1220'; ctx.fillRect(0, 0, LW, LH);
+  drawShell(t);
+  const ents = [];
+  RACKS.forEach((r, i) => ents.push({ k: r.x + r.w / 2 + r.y + r.d / 2, f: () => drawRack(r, i, t) }));
+  ents.push({ k: COOLER.x + COOLER.y + 0.8, f: () => drawCooler(t) });
+  ents.push({ k: COUNTER.x + COUNTER.w / 2 + COUNTER.y + COUNTER.d / 2, f: () => drawCounter(t) });
+  PLANTS.forEach(p => ents.push({ k: p.x + p.y, f: () => drawPlant(p, t) }));
+  DESKS.forEach((d, i) => {
+    ents.push({ k: d.x + 1.3 + d.y + 0.6, f: () => drawDesk(d, t) });
+    const sp = BOTS[i].deskSpot; ents.push({ k: sp.x + sp.y - 0.3, f: () => drawChair(sp.x, sp.y, BOTS[i].cmd ? '#14532d' : '#334155') });
+  });
+  BOTS.forEach(b => ents.push({ k: b.x + b.y, f: () => drawRobot(b, t) }));
+  ents.sort((a, b) => a.k - b.k).forEach(e => e.f());
+  reset();
+  // soft vignette
+  const vg = ctx.createRadialGradient(LW / 2, LH / 2, 120, LW / 2, LH / 2, 300);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,.35)'); ctx.fillStyle = vg; ctx.fillRect(0, 0, LW, LH);
+  placeOverlays(); placeTVLabel();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+poll();
+</script>
+</body>
+</html>
